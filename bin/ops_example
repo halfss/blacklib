@@ -1,0 +1,35 @@
+"""Starter of service.
+
+Start Test Service
+
+"""
+
+from tornado.options import parse_command_line, options
+
+import eventlet
+eventlet.monkey_patch()
+
+import os
+import sys
+
+
+from ops import log as logging
+from ops.service import service
+from ops import utils
+from ops.options import register_opt
+
+test_opts = {
+    "name": 'ops_example_manager',
+    "default": 'ops.example.manage.TestManager',
+    "help": 'manager of example',
+    "type": str,
+}
+
+register_opt(test_opts)
+
+if __name__ == '__main__':
+    parse_command_line()
+    logging.setup()
+    server = service.Service.create(binary='ops_example', periodic_interval=10)
+    service.serve(server)
+    service.wait()
