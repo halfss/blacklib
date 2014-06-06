@@ -86,6 +86,25 @@ options = get_options(service_opts, 'services')
 ```
 后面就可以通过options.periodic_interval 进行引用
 
+##API
+只需要按照tornado的格式(如ops/api/contrib/test1.py), 进行添加, 在tornado启动的时候既可直接加载相应的API
+###测试:
+####启动服务:
+```
+[root@localhost api]# python main.py
+/usr/lib/python2.6/site-packages/ops-0.1-py2.6.egg/ops/api/contrib/test1.py:1: RuntimeWarning: Parent module 'test1' not found while handling absolute import
+  import tornado.web
+/usr/lib/python2.6/site-packages/ops-0.1-py2.6.egg/ops/api/contrib/test1.py:3: RuntimeWarning: Parent module 'test1' not found while handling absolute import
+  from ops import log as logging
+[I 140606 05:13:41 web:1780] 200 GET /helloworld (127.0.0.1) 0.78ms
+```
+####测试:
+```
+[root@localhost ops]# curl 127.0.0.1/helloworld
+Hello World! I love this world!
+```
+
+
 ##log
 ```
 from ops import log as logging
