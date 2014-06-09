@@ -48,7 +48,12 @@ common_opts = [
             "default": '/var/lock',
             "help": 'path of config file',
             "type": str,
-            "callback": lambda path: parse_config_file(path, final=False)
+        },
+        {
+            "name": 'api_port',
+            "default": 8080,
+            "help": 'listen port of api',
+            "type": int,
         },
         ]
 
