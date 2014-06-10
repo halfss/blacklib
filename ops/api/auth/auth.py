@@ -4,23 +4,47 @@ import redis
 import cPickle
 
 from keystoneclient.v2_0 import client
+
+from ops.options import get_options
 from ops.api.auth import policy
 from ops.api.contrib import *
 
 
+auth_opts = [
+    {
+        "name": 'keystone_endpoint',
+        "default": 'http://127.0.0.1:35357/v2.0',
+        "help": 'the keystone endpoint url',
+        "type": str,
+    },
+    {
+        "name": "cached_backend",
+        "default": 'redis://127.0.0.1:6379/0',
+        "help": 'cached backend uri',
+        "type": str,
+    },
+    {
+        "name": 'token_timeout',
+        "default": '3600',
+        "help": 'token timeout seconds',
+        "type": str,
+    }]
+
+options = get_options(auth_opts, 'auth')
+
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseAuth, self).__init__(application, request, **kwargs)
-        self.endpoint = "http://127.0.0.1:35357/v2.0"
+        self.endpoint = options.keystone_endpoint
         self._auth(request)
 
     def _auth(self, request):
         token = request.headers.get("X-Auth-Token", None)
         if not token:
             """Reject the request"""
-            self.set_status(404)
+            self.set_status(400)
             self._transforms = []
-            return self.finish("<html><body><h1>404 Not Found</h1></body></html>")
+            return self.finish("Incomplete requests")
         self._auth_by_token(token)
 
     def _auth_by_token(self, token):
@@ -37,7 +61,7 @@ class BaseAuth(tornado.web.RequestHandler):
                 """Reject the request"""
                 self.set_status(401)
                 self._transforms = []
-                return self.finish("<html><body><center><h1>401 Authorization Required</h1></center></body></html>")
+                return self.finish("401 Authorization Required")
 
     def get_usermsg_from_keystone(self, token):
         """
@@ -97,7 +121,7 @@ class Backend(object):
             if user_msg:
                 msg = cPickle.dumps({"msg": user_msg})
                 self.conn.set(token, msg)
-                self.conn.expire(token, 900)
+                self.conn.expire(token, options.token_timeout)
                 return True
         except:
             self.conn.delete(token)
