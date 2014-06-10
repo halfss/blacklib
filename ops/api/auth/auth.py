@@ -32,11 +32,12 @@ class BaseAuth(tornado.web.RequestHandler):
         if not user_has_roles:
             user_has_roles = self.get_roles_from_keystone(token)
             backend.set_user_msg(token, self.get_usermsg_from_keystone(token))
-        if not filter(lambda x: x in user_has_roles, self.method_mapping_roles()):
-            """Reject the request"""
-            self.set_status(401)
-            self._transforms = []
-            return self.finish("<html><body><center><h1>401 Authorization Required</h1></center></body></html>")
+        if not self.method_mapping_roles():
+            if not filter(lambda x: x in user_has_roles, self.method_mapping_roles()):
+                """Reject the request"""
+                self.set_status(401)
+                self._transforms = []
+                return self.finish("<html><body><center><h1>401 Authorization Required</h1></center></body></html>")
 
     def get_usermsg_from_keystone(self, token):
         """
