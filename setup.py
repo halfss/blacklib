@@ -12,6 +12,7 @@ setup(
         "MySQL-python",
         "tornado",
         "eventlet",
+        "redis",
     ],
 
     scripts=[
