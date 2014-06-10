@@ -31,7 +31,7 @@ class BaseAuth(tornado.web.RequestHandler):
         user_has_roles = backend.get_user_roles(token)
         if not user_has_roles:
             user_has_roles = self.get_roles_from_keystone(token)
-            backend.set_user_msg(token, self.get_usermsg_from_keystone)
+            backend.set_user_msg(token, self.get_usermsg_from_keystone(token))
         if not filter(lambda x: x in user_has_roles, self.method_mapping_roles()):
             """Reject the request"""
             self.set_status(401)
