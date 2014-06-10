@@ -55,6 +55,18 @@ common_opts = [
             "help": 'listen port of api',
             "type": int,
         },
+        {
+            "name": 'keystone_endpoint',
+            "default": 'http://127.0.0.1:35357/v2.0',
+            "help": 'the keystone endpoint url',
+            "type": str,
+        },
+        {
+            "name": "cached_backend",
+            "default": 'redis://127.0.0.1:6379/0',
+            "help": 'cached backend uri',
+            "type": str,
+        },
         ]
 
 
