@@ -70,7 +70,10 @@ class BaseAuth(tornado.web.RequestHandler):
 
 class Backend(object):
     def __init__(self):
-        self.conn = redis.StrictRedis(host='localhost', port=6379, db=0)
+        cached_backend = options.cached_backend
+        host, port_db = cached_backend.split('://')[1].split(':')
+        port, db = port_db.split("/")
+        self.conn = redis.StrictRedis(host=host, port=port, db=db)
 
     def get_user_msg(self, token):
         """
