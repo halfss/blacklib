@@ -15,6 +15,9 @@ def service_create(values):
     service_ref.save()
     return service_ref
 
+def service_list():
+    return model_query(service_models.Service).all()
+
 def service_get(service_id, session=None):
     result = model_query(service_models.Service, session=session).\
                     filter_by(id=service_id).\
