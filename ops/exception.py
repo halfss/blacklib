@@ -1,3 +1,6 @@
+from ops import log as logging
+
+LOG = logging.getLogger(__name__)
 
 class OpsException(Exception):
     """Base Ops Exception
@@ -33,7 +36,18 @@ class OpsException(Exception):
 
 
 class Duplicate(OpsException):
-        pass
+    pass
+
+
+class Error(Exception):
+    pass
+
+
+class DBError(Error):
+    """Wraps an implementation specific exception."""
+    def __init__(self, inner_exception=None):
+        self.inner_exception = inner_exception
+        super(DBError, self).__init__(str(inner_exception))
 
 def wrap_db_error(f):
     def _wrap(*args, **kwargs):

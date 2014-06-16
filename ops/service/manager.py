@@ -38,6 +38,9 @@ import socket
 
 from ops import utils
 from ops import log as logging
+from ops.options import get_options
+
+options = get_options()
 
 
 LOG = logging.getLogger(__name__)

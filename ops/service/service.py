@@ -158,7 +158,7 @@ class Service(object):
         if not binary:
             binary = os.path.basename(inspect.stack()[-1][1])
         if not manager:
-            manager = options.as_dict().get('%s_manager' % binary, None)
+            manager = getattr(options, '%s_manager' % binary, None)
         if not report_interval:
             report_interval = options.report_interval
         if not periodic_interval:
@@ -197,7 +197,7 @@ class Service(object):
             except Exception:
                 pass
 
-    def periodic_tasks(self, raise_on_error=False):
+    def periodic_tasks(self, raise_on_error=options.debug):
         """Tasks to be run at a periodic interval."""
         self.manager.periodic_tasks(raise_on_error=raise_on_error)
 
