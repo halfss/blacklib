@@ -1,5 +1,5 @@
 #简介
-此为OPS的一个基本库, 包含log, 配置, DB, 插件化服务, API, 认证
+此为OPS的一个基本库, 包含log, 配置, DB, 插件化服务, API, 认证, cache
 
 * log: 基于python的logging
 * 配置: 基于tornado的option
@@ -7,6 +7,7 @@
 * 服务: 基于event,
 * API: 基于torando
 * 认证: 基本用户认证通过keystone, 关于API的权限组合认证通过keystone的role
+* cache: 基于redis
 
 #示例:\
 ##服务
@@ -121,4 +122,12 @@ policy = {
         "contrib.test1.test2": ["admin"],  #只有admin的role可以调用
         "contrib.test1.test2": [],  #通过keystone认证都可以调用
         }
+```
+
+##cache
+```
+from ops import cache
+backend = cache.Backend()
+backend.set(id, obj)
+backend.get(id)
 ```
