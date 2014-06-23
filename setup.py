@@ -13,10 +13,13 @@ setup(
         "tornado",
         "eventlet",
         "redis",
+        "requests",
+        "netaddr"
     ],
 
     scripts=[
-        "bin/ops_example",
+        "bin/ops_salt",
+        "bin/ops_api",
     ],
 
     packages=find_packages(),

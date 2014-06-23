@@ -9,7 +9,9 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import ForeignKeyConstraint
 
-from ops.db.session import get_session
+from sqlalchemy.dialects.postgresql import JSON
+
+from ops.db.session import get_session, register_models
 
 import ops.exception
 from ops.options import get_options
