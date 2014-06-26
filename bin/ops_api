@@ -1,8 +1,11 @@
 #coding=utf8
+import socket
 
 import tornado.httpserver
 import tornado.ioloop
 import tornado.web
+import tornado.process
+from tornado.netutil import bind_sockets
 
 from ops import log as logging
 from ops.options import get_options
@@ -14,6 +17,8 @@ application = tornado.web.Application(url_map)
 
 if __name__ == "__main__":
     LOG = logging.getLogger('api')
-    http_server = tornado.httpserver.HTTPServer(application)
-    http_server.listen(options.api_port)
+    sockets = bind_sockets(options.api_port, family=socket.AF_INET)
+    tornado.process.fork_processes(0) #start multi sub process as cpu numbers
+    http_server = tornado.httpserver.HTTPServer(application, xheaders=True)
+    http_server.add_sockets(sockets)
     tornado.ioloop.IOLoop.instance().start()

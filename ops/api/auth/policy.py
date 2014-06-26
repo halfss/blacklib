@@ -1,4 +1,4 @@
 policy = {
-        "contrib.test1.test2": ["admin"],
-        "contrib.test1.test2": [],
+        "contrib.service.service": ["admin"],
+        "contrib.assets.assets": ["admin"],
         }

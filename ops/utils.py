@@ -150,3 +150,9 @@ class LoopingCallDone(Exception):
     def __init__(self, retvalue=True):
         """:param retvalue: Value that LoopingCall.wait() should return."""
         self.retvalue = retvalue
+
+def get_uuid(uuid_str):
+     uuid_re = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+     uuid_str = re.findall(r'%s' % uuid_re, uuid_str)
+     if uuid_str:
+         return uuid_str[0]
