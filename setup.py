@@ -9,7 +9,6 @@ setup(
     author="halfss",
     install_requires=[
         "SQLAlchemy",
-        "MySQL-python",
         "tornado",
         "eventlet",
         "redis",
@@ -18,7 +17,6 @@ setup(
     ],
 
     scripts=[
-        "bin/ops_salt",
         "bin/ops_api",
     ],
 

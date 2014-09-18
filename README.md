@@ -131,3 +131,7 @@ backend = cache.Backend()
 backend.set(id, obj)
 backend.get(id)
 ```
+
+##依赖
+```yum install gcc make python-devel
+```
