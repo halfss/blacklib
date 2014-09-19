@@ -9,11 +9,12 @@ setup(
     author="halfss",
     install_requires=[
         "SQLAlchemy",
+        "psycopg2",
         "tornado",
         "eventlet",
         "redis",
         "requests",
-        "netaddr"
+        "netaddr",
     ],
 
     scripts=[

@@ -133,5 +133,5 @@ backend.get(id)
 ```
 
 ##依赖
-```yum install gcc make python-devel
+```yum install gcc make python-devel libxml2-devel libxslt-devel
 ```

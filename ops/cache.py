@@ -52,7 +52,6 @@ class Backend(object):
                 self.conn.expire(id, timeout)
                 return True
         except:
-            raise
             self.conn.delete(id)
             return False
 
@@ -68,6 +67,6 @@ class Backend(object):
             return []
         roles = self.get(cache_id)
         if not roles:
-            roles = map(lambda role: role.name, self.get(id).roles.list())
+            roles = [role['name'] for role in self.get(id)['roles']]
             self.set(cache_id, roles)
         return roles

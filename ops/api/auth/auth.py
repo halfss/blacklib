@@ -3,15 +3,10 @@ import tornado.web
 import redis
 import cPickle
 
-from keystoneclient.v2_0 import client
-from keystoneclient import exceptions as keystone_exceptions
-
 from ops.options import get_options
 from ops.api.auth import policy
 from ops import cache
-
-from ops.api.contrib import *
-
+from ops import utils
 
 auth_opts = [
     {
@@ -59,10 +54,11 @@ class BaseAuth(tornado.web.RequestHandler):
         Return object from keystone by token 
         """
         try:
-            user_info = client.Client(token=token, endpoint=self.endpoint)
-            user_info.roles.list()
-            return user_info
-        except keystone_exceptions.Unauthorized:
+            headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
+            user_info = utils.get_http(url=options.keystone_endpoint+'/users', headers=headers) 
+            role_info = utils.get_http(url=options.keystone_endpoint+'/tenants/%s/users/%s/roles' % (user_info.json()['tenantId'], user_info.json()['id']), headers=headers) 
+            return {'users': user_info.json(), 'roles': role_info.json()['roles']}
+        except:
             self.set_status(401)
             self._transforms = []
             self._finished = False
