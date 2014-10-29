@@ -244,9 +244,12 @@ def wait():
         opt_get = options.as_dict().get(opt, None)
         # hide flag contents from log if contains a password
         # should use secret flag when switch over to openstack-common
-        if ("_password" in opt or "_key" in opt or
-                (opt == "sql_connection" and "mysql:" in opt_get)):
-            LOG.debug('%(opt)s : FLAG SET ' % locals())
+        if ("password" in opt or \
+            "_key" in opt or \
+            opt == "sql_connection" or \
+            "user" in opt or \
+            "passwd" in opt):
+            LOG.debug('%(opt)s : HIDDEN' % locals())
         else:
             LOG.debug('%(opt)s : %(opt_get)s' % locals())
     try:
