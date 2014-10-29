@@ -13,6 +13,7 @@ from eventlet import greenthread
 
 from ops.options import get_options
 from ops import log as logging
+from ops import exception
 
 options = get_options()
 

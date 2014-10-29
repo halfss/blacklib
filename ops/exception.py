@@ -67,3 +67,7 @@ class NotFound(OpsException):
 
 class ServiceNotFound(NotFound):
     message = "Service %(service_id)s could not be found."
+
+class ClassNotFound(NotFound):
+    message = "Class %(class_name)s could not be found: %(exception)s"
+
