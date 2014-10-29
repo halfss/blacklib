@@ -96,6 +96,8 @@ def query_result_json(query_result):
         result = [dict(q) for q in query_result]
     elif getattr(query_result, '__dict__', ''):
         result = dict(query_result)
+    elif isinstance(query_result, dict):
+        result = query_result
     else:
         result = {'result': query_result}
     return json.dumps(result, cls=ComplexEncoder)

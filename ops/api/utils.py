@@ -1,6 +1,5 @@
 #coding=utf8
 import os
-
 import imp
 
 def load_url_map(path, package, log=None):
@@ -20,3 +19,21 @@ def load_url_map(path, package, log=None):
     log.info('url map:\n'+'\n'.join([ '%20s\t%s' % (_url_map[0], _url_map[1])\
             for _url_map in url_map]))
     return url_map
+
+def pageNation(request, page_list, page_name='result', count=None):
+    print page_name
+    if not isinstance(page_list, list):
+        return "page_list must be a list"
+    start = int(request.get_argument('start', 0))
+    length = int(request.get_argument('length', 10))
+    if start > len(page_list) or start < 0 : start = 0
+    _page_list = page_list[start:(start+length)]
+    if _page_list and (not isinstance(_page_list[0], str)):
+        try:
+            _page_list = [dict(q) for q in _page_list]
+        except:
+            return 'object of list must be dictable'
+    if count:
+        return {page_name: _page_list, "count": count}
+    else:
+        return {page_name: _page_list, "count": len(page_list)}

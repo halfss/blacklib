@@ -21,8 +21,19 @@ options = get_options(auth_opts, 'auth')
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseAuth, self).__init__(application, request, **kwargs)
-        self.endpoint = options.keystone_endpoint
-        self._auth(request)
+        if request.method != 'OPTIONS':
+            self.endpoint = options.keystone_endpoint
+            self.user = self._auth(request)
+            self.start, self.length = self.get_start_and_length()
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+        self.set_header("Access-Control-Allow-Headers", "X-Auth-Token, Content-type")
+        self.set_header("Content-Type", "application/json")
+
+    def options(self, *args, **kwargs):
+        self.finish()
 
     def _auth(self, request):
         token = request.headers.get("X-Auth-Token", None)
@@ -31,7 +42,7 @@ class BaseAuth(tornado.web.RequestHandler):
             self.set_status(400)
             self._transforms = []
             return self.finish("Incomplete requests")
-        self._auth_by_token(token)
+        return self._auth_by_token(token)
 
     def _auth_by_token(self, token):
         """
@@ -48,6 +59,7 @@ class BaseAuth(tornado.web.RequestHandler):
                 self.set_status(401)
                 self._transforms = []
                 return self.finish("401 Authorization Required")
+        return backend.get(token)
 
     def get_usermsg_from_keystone(self, token):
         """
@@ -57,7 +69,7 @@ class BaseAuth(tornado.web.RequestHandler):
             headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
             user_info = utils.get_http(url=options.keystone_endpoint+'/users', headers=headers) 
             role_info = utils.get_http(url=options.keystone_endpoint+'/tenants/%s/users/%s/roles' % (user_info.json()['tenantId'], user_info.json()['id']), headers=headers) 
-            return {'users': user_info.json(), 'roles': role_info.json()['roles']}
+            return {'users': user_info.json(), 'roles': role_info.json()['roles'], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles']]}
         except:
             self.set_status(401)
             self._transforms = []
@@ -74,3 +86,49 @@ class BaseAuth(tornado.web.RequestHandler):
         current_method_list.append(self.__class__.__name__)
         current_method = '.'.join(current_method_list)
         return policy.policy.get(current_method, [])
+
+    def get_start_and_length(self):
+        start = self.get_argument("start", 0)
+        length = self.get_argument("length", 100)
+        if start:
+            if not length:
+                self.set_status(400)
+                return (0,100)
+            try:
+                start = int(start)
+                length = int(length)
+                return (start, length)
+            except:
+                return (0, 100)
+        else:
+            return (0, 100)
+
+class Base(tornado.web.RequestHandler):
+    def __init__(self, application, request, **kwargs):
+        super(Base, self).__init__(application, request, **kwargs)
+        self.start, self.length = self.get_start_and_length()
+
+    def set_default_headers(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+        self.set_header("Access-Control-Allow-Headers", "X-Auth-Token, Content-type")
+        self.set_header("Content-Type", "application/json")
+
+    def options(self, *args, **kwargs):
+        self.finish()
+
+    def get_start_and_length(self):
+        start = self.get_argument("start", 0)
+        length = self.get_argument("length", 100)
+        if start:
+            if not length:
+                self.set_status(400)
+                return (0,100)
+            try:
+                start = int(start)
+                length = int(length)
+                return (start, length)
+            except:
+                return (0, 100)
+        else:
+            return (0, 100)
