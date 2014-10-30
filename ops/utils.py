@@ -161,7 +161,7 @@ def get_uuid(uuid_str):
          return uuid_str[0]
 
 def generate_uuid(uuid_str):
-    return str(uuid.uuid3(uuid.NAMESPACE_OID, (uuid_str)))
+    return str(uuid.uuid3(uuid.NAMESPACE_OID, (uuid_str.encode('utf8'))))
 
 def get_http(url='/', data='', method='get', headers={}, files=''):
     request  = getattr(requests, method)

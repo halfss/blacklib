@@ -24,7 +24,10 @@ class BaseAuth(tornado.web.RequestHandler):
         if request.method != 'OPTIONS':
             self.endpoint = options.keystone_endpoint
             self.user = self._auth(request)
-            self.start, self.length = self.get_start_and_length()
+            self.context = {'user_id': self.user['users']['id'],
+                            'tenant_id': self.user['users']['tenantId'],
+                            'start': int(self.get_argument("start", 0)),
+                            'length': int(self.get_argument("length", 10000))}
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -87,26 +90,9 @@ class BaseAuth(tornado.web.RequestHandler):
         current_method = '.'.join(current_method_list)
         return policy.policy.get(current_method, [])
 
-    def get_start_and_length(self):
-        start = self.get_argument("start", 0)
-        length = self.get_argument("length", 100)
-        if start:
-            if not length:
-                self.set_status(400)
-                return (0,100)
-            try:
-                start = int(start)
-                length = int(length)
-                return (start, length)
-            except:
-                return (0, 100)
-        else:
-            return (0, 100)
-
 class Base(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(Base, self).__init__(application, request, **kwargs)
-        self.start, self.length = self.get_start_and_length()
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -116,19 +102,3 @@ class Base(tornado.web.RequestHandler):
 
     def options(self, *args, **kwargs):
         self.finish()
-
-    def get_start_and_length(self):
-        start = self.get_argument("start", 0)
-        length = self.get_argument("length", 100)
-        if start:
-            if not length:
-                self.set_status(400)
-                return (0,100)
-            try:
-                start = int(start)
-                length = int(length)
-                return (start, length)
-            except:
-                return (0, 100)
-        else:
-            return (0, 100)
