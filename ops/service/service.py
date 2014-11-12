@@ -248,6 +248,7 @@ def wait():
             "_key" in opt or \
             opt == "sql_connection" or \
             "user" in opt or \
+            "salt_urls" == opt or \
             "passwd" in opt):
             LOG.debug('%(opt)s : HIDDEN' % locals())
         else:

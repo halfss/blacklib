@@ -91,64 +91,42 @@ class ComplexEncoder(json.JSONEncoder):
 
 def query_result_json(context, query_result, field={}, name=''):
     count = 1
+    is_list = False
     if not query_result:
-        return {}
+        result = []
+        count = 0
     elif isinstance(query_result, list):
         count = len(query_result)
-        result = [dict(q) for q in query_result[context['start']:(context['length']+context['start'])]]
-        if field:
-            i = 0
-            _result = []
-            for query in result:
-                tmp_query = {}
-                for k, v in field.items():
-                    dict_str = ''
-                    for _k in k.split('.'):
-                        if k:
-                             dict_str += "['%s']" % k
-                    for _v in v:
-                        if dict_str:
-                            if not isinstance(tmp_query.get(dict_str[2:-2], ''), dict):
-                                tmp_query[dict_str[2:-2]] = {}
-                            tmp_query[dict_str[2:-2]][_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
-                        else:
-                            tmp_query[_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
-                _result.append(tmp_query)
-                i += 1
-            result = _result
+        result = [dict(q) for q in query_result[context['start']:(context['length']+context['start'])] if q]
+        is_list = True
     elif getattr(query_result, '__dict__', ''):
-        result = dict(query_result)
-        tmp_query = {}
-        for k, v in field.items():
-            dict_str = ''
-            for _k in k.split('.'):
-                if k:
-                     dict_str += "['%s']" % k
-            for _v in v:
-                if dict_str:
-                    if not isinstance(tmp_query.get(dict_str[2:-2], ''), dict):
-                        tmp_query[dict_str[2:-2]] = {}
-                    tmp_query[dict_str[2:-2]][_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
-                else:
-                    tmp_query[_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
-        result = tmp_query
+        result = [dict(query_result)]
     elif isinstance(query_result, dict):
-        result = query_result
-        tmp_query = {}
-        for k, v in field.items():
-            dict_str = ''
-            for _k in k.split('.'):
-                if k:
-                     dict_str += "['%s']" % k
-            for _v in v:
-                if dict_str:
-                    if not isinstance(tmp_query.get(dict_str[2:-2], ''), dict):
-                        tmp_query[dict_str[2:-2]] = {}
-                    tmp_query[dict_str[2:-2]][_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
-                else:
-                    tmp_query[_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
-        result = tmp_query
-    result = {'count': count, name or 'result': result}
+        result = [query_result]
+    if field:
+        i = 0
+        _result = []
+        for query in result:
+            tmp_query = {}
+            for k, v in field.items():
+                dict_str = ''
+                for _k in k.split('.'):
+                    if k:
+                         dict_str += "['%s']" % k
+                for _v in set(v):
+                    if dict_str:
+                        if not isinstance(tmp_query.get(dict_str[2:-2], ''), dict):
+                            tmp_query[dict_str[2:-2]] = {}
+                        tmp_query[dict_str[2:-2]][_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
+                    else:
+                        tmp_query[_v] = eval('result[%d]%s' % (i, dict_str)).get(_v, '')
+            _result.append(tmp_query)
+            i += 1
+        result = _result
+    if (not is_list) and len(result) == 1:
+        result = result[0]
+    if not (isinstance(result, dict) and (result.get('count', ''))):
+        result = {'count': count, name or 'result': result}
     return json.dumps(result, cls=ComplexEncoder)
 
 class MySQLPingListener(object):

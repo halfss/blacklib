@@ -55,6 +55,24 @@ common_opts = [
             "help": 'listen port of api',
             "type": int,
         },
+        {
+            "name": 'keystone_endpoint',
+            "default": 'http://127.0.0.1:35357/v2.0',
+            "help": 'the keystone endpoint url',
+            "type": str,
+        },
+        {
+            "name": 'username',
+            "default": 'admin',
+            "help": 'username of auth',
+            "type": str,
+        },
+        {
+            "name": 'password',
+            "default": 'password',
+            "help": 'password of auth',
+            "type": str,
+        },
         ]
 
 

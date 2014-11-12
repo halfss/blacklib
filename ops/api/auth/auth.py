@@ -9,12 +9,7 @@ from ops import cache
 from ops import utils
 
 auth_opts = [
-    {
-        "name": 'keystone_endpoint',
-        "default": 'http://127.0.0.1:35357/v2.0',
-        "help": 'the keystone endpoint url',
-        "type": str,
-    }]
+]
 
 options = get_options(auth_opts, 'auth')
 

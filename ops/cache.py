@@ -28,7 +28,7 @@ class Backend(object):
         port, db = port_db.split("/")
         self.conn = redis.StrictRedis(host=host, port=port, db=db)
 
-    def get(self, id):
+    def get(self, id, default=None):
         """
         Return object with id 
         """
@@ -37,7 +37,7 @@ class Backend(object):
             if ret:
                 ret = cPickle.loads(ret)["msg"]
         except:
-            ret = None
+            ret = default
         return ret
 
     def set(self, id, user_msg, timeout=options.cache_timeout):
