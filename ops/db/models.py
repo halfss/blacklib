@@ -81,3 +81,14 @@ class OpsBase(object):
                       if not k[0] == '_'])
         local.update(joined)
         return local.iteritems()
+
+
+class APICount(BASE, OpsBase):
+    "count api caled"
+    __tablename__ = 'api_count'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(128))
+    url = Column(String(256))
+    count = Column(Integer)
+
+register_models((APICount,))

@@ -8,6 +8,8 @@ from ops.api.auth import policy
 from ops import cache
 from ops import utils
 
+from ops.service import db as service_db
+
 auth_opts = [
 ]
 
@@ -84,6 +86,11 @@ class BaseAuth(tornado.web.RequestHandler):
         current_method_list.append(self.__class__.__name__)
         current_method = '.'.join(current_method_list)
         return policy.policy.get(current_method, [])
+
+    def on_finish(self):
+        if self.request.method != 'OPTIONS':
+            service_db.count_insert_or_update(self.user['users']['name'], self.request.uri)
+
 
 class Base(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
