@@ -19,6 +19,7 @@ setup(
 
     scripts=[
         "bin/ops_api",
+        "bin/ops_admin.py",
     ],
 
     packages=find_packages(),

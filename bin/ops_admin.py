@@ -35,15 +35,18 @@ def startapp():
         return
     if args[1] == "startapp":
         for _dir in ['api/contrib', 'db', 'service']:
-            os.makedirs(os.path.join(args[2], args[2], _dir))
+            try:
+                os.makedirs(os.path.join(args[2], args[2], _dir))
+            except:
+                pass
         for _prodir in ['bin', 'etc']:
-            os.makedirs(os.path.join(args[2], _dir))
+            try:
+                os.makedirs(os.path.join(args[2], _dir))
+            except:
+                pass
     else:
-        print "Usage: ops_admin startapp [appname]"
+        print "Usage: ops_admin.py startapp [appname]"
         return
-
-def create_app(name):
-    pass
 
 if __name__ == '__main__':
     startapp()
