@@ -1,19 +1,35 @@
 #-*- coding:utf-8 -*-
 import tornado.web
+import imp
 import redis
 import cPickle
 
 from ops.options import get_options
-from ops.api.auth import policy
 from ops import cache
 from ops import utils
 
 from ops.service import db as service_db
 
 auth_opts = [
+        {
+            "name": "policy",
+            "default": "ops.api.auth.policy",
+            "help": "",
+            "type": str,
+        },
 ]
 
 options = get_options(auth_opts, 'auth')
+
+try:
+    mod = options.policy[:options.policy.rfind('.')]
+    fun = options.policy[options.policy.rfind('.')+:]
+    fn_, path, desc = imp.find_module(mod)
+    _mod = imp.load_module(mod, fn_, path, desc)
+    policy = getattr(mod, fun)
+except Exception,e:
+    return e
+    
 
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
@@ -53,12 +69,11 @@ class BaseAuth(tornado.web.RequestHandler):
         if not user_has_roles:
             backend.set(token, self.get_usermsg_from_keystone(token))
             user_has_roles = backend.get_user_roles(token)
-        if self.method_mapping_roles():
-            if not filter(lambda x: x in user_has_roles, self.method_mapping_roles()):
-                """Reject the request"""
-                self.set_status(401)
-                self._transforms = []
-                return self.finish("401 Authorization Required")
+        if not self.method_mapping_roles(user_has_roles):
+            """Reject the request"""
+            self.set_status(401)
+            self._transforms = []
+            return self.finish("401 Authorization Required")
         return backend.get(token)
 
     def get_usermsg_from_keystone(self, token):
@@ -76,16 +91,29 @@ class BaseAuth(tornado.web.RequestHandler):
             self._finished = False
             return self.finish("401 Authorization Required")
 
-    def method_mapping_roles(self):
+    def method_mapping_roles(self, user_has_roles):
         """
         Return list about request handler mapping roles
         """
-        import inspect,os,sys
-        current_method_path = inspect.getfile(self.__class__)
-        current_method_list = os.path.splitext(current_method_path)[0].split("/api/")[1].split('/')
-        current_method_list.append(self.__class__.__name__)
-        current_method = '.'.join(current_method_list)
-        return policy.policy.get(current_method, [])
+        httpmethod = self.request.method
+        httpuri = self.request.path
+        target_policy = {}
+        if not policy.hasattr("policy"):
+            return False
+
+        default_policy = []
+        if policy.hasattr("default"):
+            default_policy = policy.default
+            if not isinstance(default_policy, list):
+                default_policy = []
+        for k,v in policy.policy.iteritems():
+            pattern = re.compile(k)
+            if pattern.match(httpuri):
+                target_policy = v
+                break
+        if set(target_policy.get(httpmethod, []) + default_policy) & set(user_has_roles):
+            return True
+        return False
 
     def on_finish(self):
         if self.request.method != 'OPTIONS':
