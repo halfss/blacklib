@@ -1,8 +1,9 @@
 #-*- coding:utf-8 -*-
-import tornado.web
+import os
 import imp
 import redis
 import cPickle
+import tornado.web
 
 from ops.options import get_options
 from ops import cache
@@ -22,13 +23,14 @@ auth_opts = [
 options = get_options(auth_opts, 'auth')
 
 try:
-    mod = options.policy[:options.policy.rfind('.')]
-    fun = options.policy[options.policy.rfind('.')+:]
-    fn_, path, desc = imp.find_module(mod)
-    _mod = imp.load_module(mod, fn_, path, desc)
-    policy = getattr(mod, fun)
+    option_split = options.policy.split(".")
+    mod = option_split[0]
+    fun = options.policy[options.policy.rfind('.')+1:]
+    fn_, modpath, desc = imp.find_module(mod)
+    fn_, path, desc = imp.find_module(fun, [os.path.join(modpath, "/".join(option_split[1:-1]))])
+    policy = imp.load_module(fun, fn_, path, desc)
 except Exception,e:
-    return e
+    print e
     
 
 class BaseAuth(tornado.web.RequestHandler):
