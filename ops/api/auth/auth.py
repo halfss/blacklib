@@ -1,20 +1,36 @@
 #-*- coding:utf-8 -*-
 import re
 import tornado.web
+import imp
 import redis
 import cPickle
 
 from ops.options import get_options
-from ops.api.auth import policy
 from ops import cache
 from ops import utils
 
 from ops.service import db as service_db
 
 auth_opts = [
+        {
+            "name": "policy",
+            "default": "ops.api.auth.policy",
+            "help": "",
+            "type": str,
+        },
 ]
 
 options = get_options(auth_opts, 'auth')
+
+try:
+    mod = options.policy[:options.policy.rfind('.')]
+    fun = options.policy[options.policy.rfind('.')+:]
+    fn_, path, desc = imp.find_module(mod)
+    _mod = imp.load_module(mod, fn_, path, desc)
+    policy = getattr(mod, fun)
+except Exception,e:
+    return e
+    
 
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
@@ -24,6 +40,7 @@ class BaseAuth(tornado.web.RequestHandler):
             self.user = self._auth(request)
             self.context = {'user_id': self.user['users']['id'],
                             'tenant_id': self.user['users']['tenantId'],
+                            'user': self.user,
                             'start': int(self.get_argument("start", 0)),
                             'length': int(self.get_argument("length", 10000))}
 
@@ -54,7 +71,6 @@ class BaseAuth(tornado.web.RequestHandler):
         if not user_has_roles:
             backend.set(token, self.get_usermsg_from_keystone(token))
             user_has_roles = backend.get_user_roles(token)
-        #if self.request.path == '/dns/openapi':
         if not self.method_mapping_roles(user_has_roles):
             """Reject the request"""
             self.set_status(401)
@@ -87,14 +103,31 @@ class BaseAuth(tornado.web.RequestHandler):
         httpmethod = self.request.method
         httpuri = self.request.path
         target_policy = {}
+        if not policy.hasattr("policy"):
+            return False
+
+        default_policy = {}
+        if policy.hasattr("default"):
+            default_policy = policy.default
+            if not isinstance(default_policy, dict):
+                default_policy = {}
+
         for k,v in policy.policy.iteritems():
             pattern = re.compile(k)
             if pattern.match(httpuri):
                 target_policy = v
                 break
 
-        if set(target_policy.get(httpmethod, {})) & set(user_has_roles):
-            return True
+        allowroles = target_policy.get(httpmethod, []) + default_policy.get(httpmethod, [])
+        for allowrole in set(allowroles):
+            if not endswith("$"):
+                allowrole += "$"
+            if not startswith("^"):
+                allowrole = "^" + allowrole
+            pattern = re.compile(allowrole)
+            for role in set(user_has_roles):
+                if pattern.match(role):
+                    return True
         return False
 
     def on_finish(self):

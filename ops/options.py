@@ -87,7 +87,10 @@ def register_opt(opt, group=None):
         }
     """
     if opt.get('name', ''):
-        define(opt.pop('name'), **opt)
+        optname = opt.pop('name')
+        if optname in options._options.keys():
+            options._options.pop(optname)
+        define(optname, **opt)
 
 
 def register_opts(opts, group=None):
