@@ -1,10 +1,6 @@
 #-*- coding:utf-8 -*-
-<<<<<<< HEAD
 import os
-=======
 import re
-import tornado.web
->>>>>>> 8721be35f9ea66dd2573a8befd61861df5b53e0a
 import imp
 import redis
 import cPickle
@@ -27,21 +23,21 @@ auth_opts = [
 
 options = get_options(auth_opts, 'auth')
 
-try:
+
+def load_policy():
     option_split = options.policy.split(".")
     mod = option_split[0]
     fun = options.policy[options.policy.rfind('.')+1:]
     fn_, modpath, desc = imp.find_module(mod)
     fn_, path, desc = imp.find_module(fun, [os.path.join(modpath, "/".join(option_split[1:-1]))])
-    policy = imp.load_module(fun, fn_, path, desc)
-except Exception,e:
-    print e
+    return imp.load_module(fun, fn_, path, desc)
     
 
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseAuth, self).__init__(application, request, **kwargs)
         if request.method != 'OPTIONS':
+            self.policy = load_policy()
             self.endpoint = options.keystone_endpoint
             self.user = self._auth(request)
             self.context = {'user_id': self.user['users']['id'],
@@ -109,16 +105,19 @@ class BaseAuth(tornado.web.RequestHandler):
         httpmethod = self.request.method
         httpuri = self.request.path
         target_policy = {}
-        if not policy.hasattr("policy"):
+        if not self.policy.hasattr("policy"):
+            return False
+
+        if not isinstance(self.policy.policy, dict):
             return False
 
         default_policy = {}
-        if policy.hasattr("default"):
-            default_policy = policy.default
+        if self.policy.hasattr("default"):
+            default_policy = self.policy.default
             if not isinstance(default_policy, dict):
                 default_policy = {}
 
-        for k,v in policy.policy.iteritems():
+        for k,v in self.policy.policy.iteritems():
             pattern = re.compile(k)
             if pattern.match(httpuri):
                 target_policy = v
