@@ -39,6 +39,7 @@ class BaseAuth(tornado.web.RequestHandler):
             self.user = self._auth(request)
             self.context = {'user_id': self.user['users']['id'],
                             'tenant_id': self.user['users']['tenantId'],
+                            'user': self.user,
                             'start': int(self.get_argument("start", 0)),
                             'length': int(self.get_argument("length", 10000))}
 
