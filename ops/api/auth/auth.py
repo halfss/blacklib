@@ -125,9 +125,9 @@ class BaseAuth(tornado.web.RequestHandler):
 
         allowroles = target_policy.get(httpmethod, []) + default_policy.get(httpmethod, [])
         for allowrole in set(allowroles):
-            if not endswith("$"):
+            if not allowrole.endswith("$"):
                 allowrole += "$"
-            if not startswith("^"):
+            if not allowrole.startswith("^"):
                 allowrole = "^" + allowrole
             pattern = re.compile(allowrole)
             for role in set(user_has_roles):
