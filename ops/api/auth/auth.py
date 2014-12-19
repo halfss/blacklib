@@ -102,18 +102,28 @@ class BaseAuth(tornado.web.RequestHandler):
         if not policy.hasattr("policy"):
             return False
 
-        default_policy = []
+        default_policy = {}
         if policy.hasattr("default"):
             default_policy = policy.default
-            if not isinstance(default_policy, list):
-                default_policy = []
+            if not isinstance(default_policy, dict):
+                default_policy = {}
+
         for k,v in policy.policy.iteritems():
             pattern = re.compile(k)
             if pattern.match(httpuri):
                 target_policy = v
                 break
-        if set(target_policy.get(httpmethod, []) + default_policy) & set(user_has_roles):
-            return True
+
+        allowroles = target_policy.get(httpmethod, []) + default_policy.get(httpmethod, [])
+        for allowrole in set(allowroles):
+            if not endswith("$"):
+                allowrole += "$"
+            if not startswith("^"):
+                allowrole = "^" + allowrole
+            pattern = re.compile(allowrole)
+            for role in set(user_has_roles):
+                if pattern.match(role):
+                    return True
         return False
 
     def on_finish(self):
