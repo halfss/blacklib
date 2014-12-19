@@ -105,14 +105,14 @@ class BaseAuth(tornado.web.RequestHandler):
         httpmethod = self.request.method
         httpuri = self.request.path
         target_policy = {}
-        if not self.policy.hasattr("policy"):
+        if not hasattr(self.policy, "policy"):
             return False
 
         if not isinstance(self.policy.policy, dict):
             return False
 
         default_policy = {}
-        if self.policy.hasattr("default"):
+        if hasattr(self.policy, "default"):
             default_policy = self.policy.default
             if not isinstance(default_policy, dict):
                 default_policy = {}
