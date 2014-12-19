@@ -1,4 +1,5 @@
 #-*- coding:utf-8 -*-
+import re
 import tornado.web
 import redis
 import cPickle
@@ -36,7 +37,7 @@ class BaseAuth(tornado.web.RequestHandler):
         self.finish()
 
     def _auth(self, request):
-        token = request.headers.get("X-Auth-Token", None)
+        token = request.headers.get("X-Auth-Token") or self.get_argument('token', False) 
         if not token:
             """Reject the request"""
             self.set_status(400)
@@ -53,12 +54,12 @@ class BaseAuth(tornado.web.RequestHandler):
         if not user_has_roles:
             backend.set(token, self.get_usermsg_from_keystone(token))
             user_has_roles = backend.get_user_roles(token)
-        if self.method_mapping_roles():
-            if not filter(lambda x: x in user_has_roles, self.method_mapping_roles()):
-                """Reject the request"""
-                self.set_status(401)
-                self._transforms = []
-                return self.finish("401 Authorization Required")
+        #if self.request.path == '/dns/openapi':
+        if not self.method_mapping_roles(user_has_roles):
+            """Reject the request"""
+            self.set_status(401)
+            self._transforms = []
+            return self.finish("401 Authorization Required")
         return backend.get(token)
 
     def get_usermsg_from_keystone(self, token):
@@ -69,27 +70,41 @@ class BaseAuth(tornado.web.RequestHandler):
             headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
             user_info = utils.get_http(url=options.keystone_endpoint+'/users', headers=headers) 
             role_info = utils.get_http(url=options.keystone_endpoint+'/tenants/%s/users/%s/roles' % (user_info.json()['tenantId'], user_info.json()['id']), headers=headers) 
-            return {'users': user_info.json(), 'roles': role_info.json()['roles'], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles']]}
-        except:
+            print role_info.json()
+            return {'users': user_info.json(), 'roles': [role for role in role_info.json()['roles'] if role], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles'] if role]}
+        except Exception,e:
+            print "Get usermsg error....\n"*3
+            print e
             self.set_status(401)
             self._transforms = []
             self._finished = False
             return self.finish("401 Authorization Required")
 
-    def method_mapping_roles(self):
+    def method_mapping_roles(self, user_has_roles):
         """
         Return list about request handler mapping roles
         """
-        import inspect,os,sys
-        current_method_path = inspect.getfile(self.__class__)
-        current_method_list = os.path.splitext(current_method_path)[0].split("/api/")[1].split('/')
-        current_method_list.append(self.__class__.__name__)
-        current_method = '.'.join(current_method_list)
-        return policy.policy.get(current_method, [])
+        httpmethod = self.request.method
+        httpuri = self.request.path
+        target_policy = {}
+        for k,v in policy.policy.iteritems():
+            pattern = re.compile(k)
+            if pattern.match(httpuri):
+                target_policy = v
+                break
+
+        if set(target_policy.get(httpmethod, {})) & set(user_has_roles):
+            return True
+        return False
 
     def on_finish(self):
         if self.request.method != 'OPTIONS':
-            service_db.count_insert_or_update(self.user['users']['name'], self.request.uri)
+            try:
+                user = self.user['users']['name']
+            except:
+                user = None
+            if user:
+                service_db.count_insert_or_update(user, self.request.uri)
 
 
 class Base(tornado.web.RequestHandler):

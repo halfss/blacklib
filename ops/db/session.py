@@ -89,7 +89,7 @@ class ComplexEncoder(json.JSONEncoder):
         else:
             return json.JSONEncoder.default(self, obj)
 
-def query_result_json(context, query_result, field={}, name=''):
+def query_result_json(context, query_result, field={}, name='', ext_dict={}):
     count = 1
     is_list = False
     if not query_result:
@@ -127,6 +127,7 @@ def query_result_json(context, query_result, field={}, name=''):
         result = result[0]
     if not (isinstance(result, dict) and (result.get('count', ''))):
         result = {'count': count, name or 'result': result}
+    result.update(ext_dict)
     return json.dumps(result, cls=ComplexEncoder)
 
 class MySQLPingListener(object):
