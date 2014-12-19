@@ -1,5 +1,10 @@
 #-*- coding:utf-8 -*-
+<<<<<<< HEAD
 import os
+=======
+import re
+import tornado.web
+>>>>>>> 8721be35f9ea66dd2573a8befd61861df5b53e0a
 import imp
 import redis
 import cPickle
@@ -55,7 +60,7 @@ class BaseAuth(tornado.web.RequestHandler):
         self.finish()
 
     def _auth(self, request):
-        token = request.headers.get("X-Auth-Token", None)
+        token = request.headers.get("X-Auth-Token") or self.get_argument('token', False) 
         if not token:
             """Reject the request"""
             self.set_status(400)
@@ -87,8 +92,11 @@ class BaseAuth(tornado.web.RequestHandler):
             headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
             user_info = utils.get_http(url=options.keystone_endpoint+'/users', headers=headers) 
             role_info = utils.get_http(url=options.keystone_endpoint+'/tenants/%s/users/%s/roles' % (user_info.json()['tenantId'], user_info.json()['id']), headers=headers) 
-            return {'users': user_info.json(), 'roles': role_info.json()['roles'], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles']]}
-        except:
+            print role_info.json()
+            return {'users': user_info.json(), 'roles': [role for role in role_info.json()['roles'] if role], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles'] if role]}
+        except Exception,e:
+            print "Get usermsg error....\n"*3
+            print e
             self.set_status(401)
             self._transforms = []
             self._finished = False
@@ -130,7 +138,12 @@ class BaseAuth(tornado.web.RequestHandler):
 
     def on_finish(self):
         if self.request.method != 'OPTIONS':
-            service_db.count_insert_or_update(self.user['users']['name'], self.request.uri)
+            try:
+                user = self.user['users']['name']
+            except:
+                user = None
+            if user:
+                service_db.count_insert_or_update(user, self.request.uri)
 
 
 class Base(tornado.web.RequestHandler):
