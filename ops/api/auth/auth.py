@@ -148,6 +148,9 @@ class BaseAuth(tornado.web.RequestHandler):
 class Base(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(Base, self).__init__(application, request, **kwargs)
+        if request.method != 'OPTIONS':
+            self.context = {'start': int(self.get_argument("start", 0)),
+                            'length': int(self.get_argument("length", 10000))}
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")

@@ -88,7 +88,7 @@ class APICount(BASE, OpsBase):
     __tablename__ = 'api_count'
     id = Column(Integer, primary_key=True)
     name = Column(String(128))
-    url = Column(String(256))
+    url = Column(String(1024))
     count = Column(Integer)
 
 register_models((APICount,))
