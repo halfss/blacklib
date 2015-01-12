@@ -17,5 +17,5 @@ policy = {
         "/service$": {},
         "/record$": {},
         "/domain$": {},
-        "/domain/openapi$": {"GET": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn"], "POST": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn"], "PUT": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn"], "DELETE": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn"]},
+        "/domain/openapi$": {"GET": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn","domain_.game2.ate.cn"], "POST": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn","domain_.game2.ate.cn"], "PUT": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn","domain_.game2.ate.cn"], "DELETE": ["domain_.mu.g.yx-g.cn","domain_.mu.ate.cn","domain_.game2.ate.cn"]},
         }
