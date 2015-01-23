@@ -90,7 +90,7 @@ class ComplexEncoder(json.JSONEncoder):
             return json.JSONEncoder.default(self, obj)
 
 def query_result_json(context, query_result, field={}, name='', ext_dict={}):
-    count = 1
+    count = 0
     is_list = False
     if not query_result:
         result = []
@@ -101,8 +101,10 @@ def query_result_json(context, query_result, field={}, name='', ext_dict={}):
         is_list = True
     elif getattr(query_result, '__dict__', ''):
         result = [dict(query_result)]
-    elif isinstance(query_result, dict):
+    elif isinstance(query_result, dict) and ('count' not in query_result.keys()):
         result = [query_result]
+    else:
+        result = query_result
     if field:
         i = 0
         _result = []
@@ -125,7 +127,7 @@ def query_result_json(context, query_result, field={}, name='', ext_dict={}):
         result = _result
     if (not is_list) and len(result) == 1:
         result = result[0]
-    if not (isinstance(result, dict) and (result.get('count', ''))):
+    if not (isinstance(result, dict)):
         result = {'count': count, name or 'result': result}
     result.update(ext_dict)
     return json.dumps(result, cls=ComplexEncoder)
