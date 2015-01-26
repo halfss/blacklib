@@ -127,7 +127,7 @@ def query_result_json(context, query_result, field={}, name='', ext_dict={}):
         result = _result
     if (not is_list) and len(result) == 1:
         result = result[0]
-    if not (isinstance(result, dict)):
+    if not (isinstance(result, dict) and 'count' in result.keys()):
         result = {'count': count, name or 'result': result}
     result.update(ext_dict)
     return json.dumps(result, cls=ComplexEncoder)
