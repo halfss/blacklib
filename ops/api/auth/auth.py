@@ -40,6 +40,10 @@ class BaseAuth(tornado.web.RequestHandler):
             self.policy = load_policy()
             self.endpoint = options.keystone_endpoint
             self.user = self._auth(request)
+            if isinstance(self.user, tuple):
+                self.set_status(self.user[1])
+                self._transforms = []
+                return self.finish(str(self.user[1]))
             self.context = {'user_id': self.user['users']['id'],
                             'tenant_id': self.user['users']['tenantId'],
                             'user': self.user,
@@ -59,9 +63,10 @@ class BaseAuth(tornado.web.RequestHandler):
         token = request.headers.get("X-Auth-Token") or self.get_argument('token', False) 
         if not token:
             """Reject the request"""
-            self.set_status(400)
-            self._transforms = []
-            return self.finish("Incomplete requests")
+            return (False, 400)
+            #self.set_status(400)
+            #self._transforms = []
+            #return self.finish("Incomplete requests")
         return self._auth_by_token(token)
 
     def _auth_by_token(self, token):
@@ -71,13 +76,17 @@ class BaseAuth(tornado.web.RequestHandler):
         backend = cache.Backend()
         user_has_roles = backend.get_user_roles(token)
         if not user_has_roles:
-            backend.set(token, self.get_usermsg_from_keystone(token))
+            Msg = self.get_usermsg_from_keystone(token)
+            if isinstance(Msg, tuple):
+                return Msg
+            backend.set(token, Msg)
             user_has_roles = backend.get_user_roles(token)
         if not self.method_mapping_roles(user_has_roles):
             """Reject the request"""
-            self.set_status(401)
-            self._transforms = []
-            return self.finish("401 Authorization Required")
+            return (False, 401)
+            #self.set_status(401)
+            #self._transforms = []
+            #return self.finish("401 Authorization Required")
         return backend.get(token)
 
     def get_usermsg_from_keystone(self, token):
@@ -93,10 +102,11 @@ class BaseAuth(tornado.web.RequestHandler):
         except Exception,e:
             print "Get usermsg error....\n"*3
             print e
-            self.set_status(401)
-            self._transforms = []
-            self._finished = False
-            return self.finish("401 Authorization Required")
+            return (False, 401)
+            #self.set_status(401)
+            #self._transforms = []
+            #self._finished = False
+            #return self.finish("401 Authorization Required")
 
     def method_mapping_roles(self, user_has_roles):
         """
