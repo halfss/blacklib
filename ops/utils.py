@@ -166,3 +166,19 @@ def generate_uuid(uuid_str):
 def get_http(url='/', data='', method='get', headers={}, files=''):
     request  = getattr(requests, method)
     return request(url, data = data, headers=headers, files=files, verify=False)
+
+def get_token():
+    data = {"auth":
+            {"passwordCredentials":
+                {"username": options.keystone_username,
+                 "password": options.keystone_password},
+            'tenantName': options.keystone_tenant
+            },
+        }
+    headers = {'Content-type': 'application/json'}
+    r = get_http(method='post', url='%s/tokens' % options.keystone_endpoint,
+            data=json.dumps(data))
+    if r.status_code == 200 and r.json().get('access', ''):
+        return r.json()['access']['token']['id']
+    else:
+        return False
