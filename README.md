@@ -132,6 +132,41 @@ backend.set(id, obj)
 backend.get(id)
 ```
 
+##config
+###统一配置
+* 1: 配置文件中指定使用该库的应用一个统一的配置项
+```
+#opts of alert
+extra_opts="alert.config"
+```
+* 2: alert.config.py
+
+```
+[root@localhost notify]# cat /opt/notify/alert/config.py
+opts= [
+    {
+        "name": "data_port",
+        "default": 8337,
+        "type": int,
+        "help": "Alert data api listen port"
+    }]
+```
+
+###单个配置
+```
+from ops.options import get_options
+salt_options = [
+    {
+        "name": "summary_field",
+        "default": "num_cpus,mem_total,osfullname,osrelease,master",
+        "help": "Full text search field",
+        "type": str,
+    }
+    ]
+
+options = get_options(salt_options)
+```
+
 ##依赖
 ```yum install gcc make python-devel libxml2-devel libxslt-devel
 ```

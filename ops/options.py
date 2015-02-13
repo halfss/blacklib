@@ -73,6 +73,12 @@ common_opts = [
             "help": 'password of auth',
             "type": str,
         },
+        {
+            "name": 'extra_opts',
+            "default": '',
+            "help": "all opts of app's",
+            "type": str,
+        },
         ]
 
 
@@ -103,6 +109,12 @@ def get_options(opts=None, group=None):
     if opts:
         register_opts(opts, group)
     options = register_opts(common_opts, 'common')
+    if options.as_dict().get('extra_opts', ''):
+        try:
+            extra_opts = __import__(options.extra_opts)
+            options = register_opts(extra_opts.config.opts, 'extra')
+        except:
+            print "get config error"
     parse_config_file(options.config, final=False)
     parse_command_line()
     return options

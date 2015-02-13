@@ -3,6 +3,7 @@ import os
 import sys
 import re
 import uuid
+import json
 import requests
 
 import datetime
@@ -167,18 +168,40 @@ def get_http(url='/', data='', method='get', headers={}, files=''):
     request  = getattr(requests, method)
     return request(url, data = data, headers=headers, files=files, verify=False)
 
-def get_token():
-    data = {"auth":
-            {"passwordCredentials":
-                {"username": options.keystone_username,
-                 "password": options.keystone_password},
-            'tenantName': options.keystone_tenant
-            },
-        }
+def get_token(username=options.as_dict().get('keystone_username', ''), password=options.as_dict().get('keystone_password' ,''), tenant=options.as_dict().get('keystone_tenant', '')):
     headers = {'Content-type': 'application/json'}
-    r = get_http(method='post', url='%s/tokens' % options.keystone_endpoint,
-            data=json.dumps(data))
-    if r.status_code == 200 and r.json().get('access', ''):
-        return r.json()['access']['token']['id']
+    if tenant:
+        data = {"auth":
+                {"passwordCredentials":
+                    {"username": username,
+                     "password": password},
+                'tenantName': tenant
+                },
+            }
+        r = get_http(method='post', url='%s/tokens' % options.keystone_endpoint,
+                data=json.dumps(data))
+        if r.status_code == 200 and r.json().get('access', ''):
+            return r.json()['access']['token']['id']
+        else:
+            return False
     else:
-        return False
+        data = {"auth":
+                {"passwordCredentials":
+                    {"username": username,
+                     "password": password}
+                },
+            }
+        try:
+            r = get_http(method='post', url='%s/tokens' % keystone_endpoint,
+                    data=json.dumps(data))
+            if r.status_code == 200 and r.json().get('access', ''):
+                token = r.json()['access']['token']['id']
+                headers['X-Auth-Token'] = token
+                r = get_http(url='%s/tenants' % keystone_endpoint, headers=headers)
+                tenants = r.json()['tenants'][0]['name']
+                data['auth']['tenantName'] = tenants
+                r = get_http(method='post', url='%s/tokens' % keystone_endpoint,
+                    data=json.dumps(data))
+                return r.json()['access']['token']['id']
+            else:
+                return False
