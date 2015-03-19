@@ -80,6 +80,7 @@ class BaseAuth(tornado.web.RequestHandler):
             if isinstance(Msg, tuple):
                 return Msg
             backend.set(token, Msg)
+            backend.set(Msg['users']['id'], Msg)
             user_has_roles = backend.get_user_roles(token)
         if not self.method_mapping_roles(user_has_roles):
             """Reject the request"""

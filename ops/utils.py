@@ -205,3 +205,5 @@ def get_token(username=options.as_dict().get('keystone_username', ''), password=
                 return r.json()['access']['token']['id']
             else:
                 return False
+        except:
+            pass
