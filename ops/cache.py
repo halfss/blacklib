@@ -67,6 +67,7 @@ class Backend(object):
             return []
         roles = self.get(cache_id)
         if not roles:
-            roles = [role['name'] for role in self.get(id)['roles']]
-            self.set(cache_id, roles)
+            if 'roles' in self.get(id):
+                roles = [role['name'] for role in self.get(id)['roles']]
+                self.set(cache_id, roles)
         return roles
