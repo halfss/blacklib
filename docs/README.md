@@ -16,19 +16,19 @@
     └── setup.py
 
 
-1. 安装sphinx
+* 安装sphinx
 
 ```pip install sphinx```
 
-2. 创建文档目录
+* 创建文档目录
 
 ```mkdir docs```
 
-3. 生成API目录下面模块的文档
+* 生成API目录下面模块的文档
 
 ```sphinx-apidoc -F -o docs opsclient/api```
 
-4. 编辑docs/config.py，添加PYTHONPATH
+* 编辑docs/config.py，添加PYTHONPATH
 
 ```
 vim docs/config.py
@@ -36,11 +36,11 @@ vim docs/config.py
 sys.path.insert(0, os.path.abspath('../opsclient/api/'))
 ```
 
-5. 安装主题
+* 安装主题
 
 ```pip install sphinx_rtd_theme```
 
-6. 配置主题
+* 配置主题
 
 ```
 vim docs/config.py
@@ -50,7 +50,7 @@ html_theme = "sphinx_rtd_theme"
 html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 ```
 
-7. 生成文档
+* 生成文档
 
 ```
 cd docs && mkdir html
