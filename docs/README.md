@@ -1,6 +1,7 @@
 文档生成步骤
 ==============
 ``PS: 按照以下结构具体说明``
+
     ├── bin
     │   └── opsclient
     ├── etc
@@ -13,6 +14,7 @@
     │       ├── __init__.py
     │       ├── shell.py
     └── setup.py
+
 
 1. 安装sphinx
 
