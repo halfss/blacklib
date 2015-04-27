@@ -16,6 +16,7 @@
     └── setup.py
 
 
+```
 1. 安装sphinx
 
     pip install sphinx
@@ -49,7 +50,7 @@
 
     cd docs && mkdir html
     sphinx-build . html
-
+```
 
 html目录里面即为生成的文档。
 
