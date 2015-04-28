@@ -54,6 +54,42 @@
 
 html目录里面即为生成的文档。
 
+
+实例
+==========
+::
+
+    def get(self):
+        """
+        **获取工单列表**
+
+        **参数列表**:
+        :group(option): 工单分组,可选值done(已解决),todo(正在解决)
+        :title: 工单标题
+        :content: 工单内容
+        :attach: 工单附件
+
+        **Example**
+        ::
+        
+            curl -X POST http://xxx:8336/ -d '{"title": "xxx", "content": "xxx"}'
+
+        **返回参考**
+        ::
+
+            {
+                "result": {
+                    "status": 5,
+                    "message": "Operation success",
+                    "result": {
+                        "id": "f81685e8ed4d11e4bc3c000e67dd25de",
+                        "updated_at": "2015-04-28 10:26:25",
+                    }
+                }
+            }
+        """
+        pass
+
 常用语法
 ===========
 具体详细可参考 [reStructuredText](http://zh-sphinx-doc.readthedocs.org/en/latest/rest.html)
@@ -77,17 +113,15 @@ html目录里面即为生成的文档。
     `引用`
 
 参数列表:
+
 * gameid: 游戏ID
 * version: 版本
-
-    参数列表:
 
     :gameid: 游戏ID
     :version: 版本
 
 代码块:
 
-    代码块:
     ::
         
         for i in xrange(10):
