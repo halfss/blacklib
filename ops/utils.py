@@ -217,6 +217,17 @@ def ip_into_int(ip):
 def is_internal_ip(ip):
     ip = ip_into_int(ip)
     net_a = ip_into_int('10.255.255.255') >> 24
-    net_b = ip_into_int('172.31.255.255') >> 20
+    net_b = ip_into_int('172.16.255.255') >> 20
     net_c = ip_into_int('192.168.255.255') >> 16
-    return ip >> 24 == net_a or ip >>20 == net_b or ip >> 16 == net_c
+    net_d = ip_into_int('127.255.255.255') >> 24
+    net_e = ip_into_int('169.254.255.255') >> 16
+    net_f = ip_into_int('224.255.255.255') >> 24
+    net_g = ip_into_int('127.255.255.255') >> 24
+
+    return ip >> 24 == net_a or \
+           ip >> 20 == net_b or \
+           ip >> 16 == net_c or \
+           ip >> 24 == net_d or \
+           ip >> 16 == net_e or \
+           ip >> 24 == net_f or \
+           ip >> 24 == net_g
