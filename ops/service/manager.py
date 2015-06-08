@@ -35,6 +35,7 @@ This module provides Manager, a base class for managers.
 
 """
 import socket
+import eventlet
 
 from ops import utils
 from ops import log as logging
@@ -113,26 +114,30 @@ class Manager(Base):
 
     def periodic_tasks(self, raise_on_error=False):
         """Tasks to be run at a periodic interval."""
+        task_pools = eventlet.GreenPile()
         for task_name, task in self._periodic_tasks:
-            full_task_name = '.'.join([self.__class__.__name__, task_name])
+            task_pools.spawn(self.run_task, *[task_name, task, raise_on_error])
 
-            ticks_to_skip = self._ticks_to_skip[task_name]
-            if ticks_to_skip > 0:
-                LOG.debug("Skipping %(full_task_name)s, %(ticks_to_skip)s"
-                            " ticks left until next run", locals())
-                self._ticks_to_skip[task_name] -= 1
-                continue
+    def run_task(self, task_name, task, raise_on_error):
+        full_task_name = '.'.join([self.__class__.__name__, task_name])
 
-            self._ticks_to_skip[task_name] = task._ticks_between_runs
-            LOG.debug("Running periodic task %(full_task_name)s", locals())
+        ticks_to_skip = self._ticks_to_skip[task_name]
+        if ticks_to_skip > 0:
+            LOG.debug("Skipping %(full_task_name)s, %(ticks_to_skip)s"
+                        " ticks left until next run", locals())
+            self._ticks_to_skip[task_name] -= 1
+            return
 
-            try:
-                task(self)
-            except Exception as e:
-                if raise_on_error:
-                    raise
-                LOG.exception("Error during %(full_task_name)s: %(e)s",
-                              locals())
+        self._ticks_to_skip[task_name] = task._ticks_between_runs
+        LOG.debug("Running periodic task %(full_task_name)s", locals())
+
+        try:
+            task(self)
+        except Exception as e:
+            if raise_on_error:
+                raise
+            LOG.exception("Error during %(full_task_name)s: %(e)s",
+                          locals())
 
     def init_host(self):
         """Handle initialization if this is a standalone service.
