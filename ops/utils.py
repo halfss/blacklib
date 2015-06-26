@@ -231,3 +231,6 @@ def is_internal_ip(ip):
            ip >> 16 == net_e or \
            ip >> 24 == net_f or \
            ip >> 24 == net_g
+
+def match_ip(ip):
+    return re.findall( r'[0-9]+(?:\.[0-9]+){3}', ip)[0]
