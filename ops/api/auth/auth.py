@@ -9,6 +9,7 @@ import tornado.web
 from ops.options import get_options
 from ops import cache
 from ops import utils
+from ops import log as logging
 
 from ops.service import db as service_db
 
@@ -22,6 +23,9 @@ auth_opts = [
 ]
 
 options = get_options(auth_opts, 'auth')
+
+LOG = logging.getLogger()
+
 
 
 def load_policy():
@@ -49,6 +53,7 @@ class BaseAuth(tornado.web.RequestHandler):
                             'user': self.user,
                             'start': int(self.get_argument("start", 0)),
                             'length': int(self.get_argument("length", 10000))}
+            LOG.debug("%s %s %s" % (self.context['user']['users']['name'], request.method, request.uri))
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
