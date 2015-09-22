@@ -103,16 +103,11 @@ class BaseAuth(tornado.web.RequestHandler):
             headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
             user_info = utils.get_http(url=options.keystone_endpoint+'/users', headers=headers) 
             role_info = utils.get_http(url=options.keystone_endpoint+'/tenants/%s/users/%s/roles' % (user_info.json()['tenantId'], user_info.json()['id']), headers=headers) 
-            print role_info.json()
             return {'users': user_info.json(), 'roles': [role for role in role_info.json()['roles'] if role], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles'] if role]}
         except Exception,e:
             print "Get usermsg error....\n"*3
             print e
             return (False, 401)
-            #self.set_status(401)
-            #self._transforms = []
-            #self._finished = False
-            #return self.finish("401 Authorization Required")
 
     def method_mapping_roles(self, user_has_roles):
         """
@@ -141,10 +136,6 @@ class BaseAuth(tornado.web.RequestHandler):
 
         allowroles = [str(i) for i in target_policy.get(httpmethod, []) + default_policy.get(httpmethod, []) if i]
         for allowrole in set(allowroles):
-            if not allowrole.endswith("$"):
-                allowrole += "$"
-            if not allowrole.startswith("^"):
-                allowrole = "^" + allowrole
             pattern = re.compile(allowrole)
             for role in set(user_has_roles):
                 if pattern.match(role):
