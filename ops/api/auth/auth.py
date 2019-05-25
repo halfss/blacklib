@@ -23,10 +23,7 @@ auth_opts = [
 ]
 
 options = get_options(auth_opts, 'auth')
-
 LOG = logging.getLogger()
-
-
 
 def load_policy():
     option_split = options.policy.split(".")
@@ -35,25 +32,22 @@ def load_policy():
     fn_, modpath, desc = imp.find_module(mod)
     fn_, path, desc = imp.find_module(fun, [os.path.join(modpath, "/".join(option_split[1:-1]))])
     return imp.load_module(fun, fn_, path, desc)
-    
+
 
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseAuth, self).__init__(application, request, **kwargs)
         if request.method != 'OPTIONS':
             self.policy = load_policy()
-            self.endpoint = options.keystone_endpoint
-            self.user = self._auth(request)
-            if isinstance(self.user, tuple):
-                self.set_status(self.user[1])
-                self._transforms = []
-                return self.finish(str(self.user[1]))
-            self.context = {'user_id': self.user['users']['id'],
-                            'tenant_id': self.user['users']['tenantId'],
-                            'user': self.user,
-                            'start': int(self.get_argument("start", 0)),
-                            'length': int(self.get_argument("length", 10000))}
-            LOG.debug("%s %s %s" % (self.context['user']['users']['name'], request.method, request.uri))
+            self.token = request.headers.get("X-Auth-Token") or self.get_argument('token', False)
+            authed, self.user = self._auth(request)
+            if authed and self.user:
+                self.context = {'start': int(self.get_argument("start", 0)),
+                                'length': int(self.get_argument("length", 10000))}
+                self.context['user'] = self.user
+                LOG.debug("auth token:%s by %s" % (self.token, self.context))
+            else:
+                self.return_401()
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -65,48 +59,31 @@ class BaseAuth(tornado.web.RequestHandler):
         self.finish()
 
     def _auth(self, request):
-        token = request.headers.get("X-Auth-Token") or self.get_argument('token', False) 
-        if not token:
+        if not self.token:
             """Reject the request"""
-            return (False, 400)
-            #self.set_status(400)
-            #self._transforms = []
-            #return self.finish("Incomplete requests")
-        return self._auth_by_token(token)
+            return False, {}
+        return self._auth_by_token(self.token)
 
     def _auth_by_token(self, token):
         """
         By token Authenticate roles
         """
         backend = cache.Backend()
-        user_has_roles = backend.get_user_roles(token)
-        if not user_has_roles:
-            Msg = self.get_usermsg_from_keystone(token)
-            if isinstance(Msg, tuple):
-                return Msg
-            backend.set(token, Msg)
-            backend.set(Msg['users']['id'], Msg)
-            user_has_roles = backend.get_user_roles(token)
-        if not self.method_mapping_roles(user_has_roles):
-            """Reject the request"""
-            return (False, 401)
-            #self.set_status(401)
-            #self._transforms = []
-            #return self.finish("401 Authorization Required")
-        return backend.get(token)
+        user_info = backend.get(self.token)
+        if not user_info:
+            Msg = self.get_usermsg_from_keystone(self.token)
+            backend.set(self.token, Msg)
+        return True, backend.get(self.token)
 
     def get_usermsg_from_keystone(self, token):
         """
-        Return object from keystone by token 
+        Return object from keystone by token
         """
         try:
             headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
-            user_info = utils.get_http(url=options.keystone_endpoint+'/users', headers=headers) 
-            role_info = utils.get_http(url=options.keystone_endpoint+'/tenants/%s/users/%s/roles' % (user_info.json()['tenantId'], user_info.json()['id']), headers=headers) 
-            return {'users': user_info.json(), 'roles': [role for role in role_info.json()['roles'] if role], 'admin': 'admin' in [role['name'] for role in role_info.json()['roles'] if role]}
+            user_info = utils.get_http(url=options.auth_endpoint, headers=headers)
+            return user_info.json()['result']
         except Exception,e:
-            print "Get usermsg error....\n"*3
-            print e
             return (False, 401)
 
     def method_mapping_roles(self, user_has_roles):
@@ -142,6 +119,13 @@ class BaseAuth(tornado.web.RequestHandler):
                     return True
         return False
 
+    def return_401(self):
+        self.clear()
+        self._transforms = []
+        self.set_status(401)
+        return self.finish("401 Authorization Required")
+
+
     def on_finish(self):
         if self.request.method != 'OPTIONS':
             try:
@@ -157,7 +141,8 @@ class Base(tornado.web.RequestHandler):
         super(Base, self).__init__(application, request, **kwargs)
         if request.method != 'OPTIONS':
             self.context = {'start': int(self.get_argument("start", 0)),
-                            'length': int(self.get_argument("length", 10000))}
+                            'length': int(self.get_argument("length", 10000)),
+                            'token': request.headers.get("X-Auth-Token") or self.get_argument('token', False)}
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")

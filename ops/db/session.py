@@ -97,6 +97,7 @@ def query_result_json(context, query_result, field={}, name='', ext_dict={}):
         count = 0
     elif isinstance(query_result, list):
         count = len(query_result)
+        print context
         result = [dict(q) for q in query_result[context['start']:(context['length']+context['start'])] if q]
         is_list = True
     elif getattr(query_result, '__dict__', ''):

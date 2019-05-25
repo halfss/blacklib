@@ -56,9 +56,9 @@ common_opts = [
             "type": int,
         },
         {
-            "name": 'keystone_endpoint',
+            "name": 'auth_endpoint',
             "default": 'http://127.0.0.1:35357/v2.0',
-            "help": 'the keystone endpoint url',
+            "help": 'the auth endpoint url',
             "type": str,
         },
         {
