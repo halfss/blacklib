@@ -33,7 +33,6 @@ def load_policy():
     fn_, path, desc = imp.find_module(fun, [os.path.join(modpath, "/".join(option_split[1:-1]))])
     return imp.load_module(fun, fn_, path, desc)
 
-
 class BaseAuth(tornado.web.RequestHandler):
     def __init__(self, application, request, **kwargs):
         super(BaseAuth, self).__init__(application, request, **kwargs)
@@ -84,7 +83,7 @@ class BaseAuth(tornado.web.RequestHandler):
             user_info = utils.get_http(url=options.auth_endpoint, headers=headers)
             return user_info.json()['result']
         except Exception,e:
-            return (False, 401)
+            return False, {}
 
     def method_mapping_roles(self, user_has_roles):
         """
@@ -125,7 +124,6 @@ class BaseAuth(tornado.web.RequestHandler):
         self.set_status(401)
         return self.finish("401 Authorization Required")
 
-
     def on_finish(self):
         if self.request.method != 'OPTIONS':
             try:
@@ -141,8 +139,7 @@ class Base(tornado.web.RequestHandler):
         super(Base, self).__init__(application, request, **kwargs)
         if request.method != 'OPTIONS':
             self.context = {'start': int(self.get_argument("start", 0)),
-                            'length': int(self.get_argument("length", 10000)),
-                            'token': request.headers.get("X-Auth-Token") or self.get_argument('token', False)}
+                            'length': int(self.get_argument("length", 200))}
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")

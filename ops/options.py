@@ -50,7 +50,13 @@ common_opts = [
             "type": str,
         },
         {
-            "name": 'api_port',
+            "name": 'listen_host',
+            "default": "0.0.0.0",
+            "help": 'listen host of process',
+            "type": str,
+        },
+        {
+            "name": 'listen_port',
             "default": 8080,
             "help": 'listen port of api',
             "type": int,
