@@ -8,6 +8,10 @@ import sqlalchemy.interfaces
 import sqlalchemy.orm
 from sqlalchemy.exc import DisconnectionError, OperationalError
 from sqlalchemy.pool import NullPool, StaticPool
+from sqlalchemy import desc
+from sqlalchemy import asc
+from sqlalchemy import and_
+from sqlalchemy import or_
 
 from ops import exception
 
@@ -226,8 +230,25 @@ def register_models(tables):
     tablese = (Costlog,)
 
     """
-    from sqlalchemy import create_engine
     models = tables
+    from sqlalchemy import create_engine
     engine = create_engine(options.sql_connection, echo=False)
     for model in models:
         model.metadata.create_all(engine)
+
+
+def query_sort(table, query, sort_by='', sort_desc=True):
+    if not isinstance(sort_desc, bool):
+        if sort_desc=='True':
+            sort_desc = True
+        else:
+            sort_desc = False
+    sort_map = {"desc": desc, "asc": asc}
+    if sort_desc:
+        sort_desc = "desc"
+    else:
+        sort_desc = "asc"
+    sort_desc = sort_map.get(sort_desc, desc)
+    if hasattr(table, sort_by):
+        query = query.order_by(sort_desc(getattr(table, sort_by)))
+    return query

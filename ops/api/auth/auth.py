@@ -40,6 +40,7 @@ class BaseAuth(tornado.web.RequestHandler):
             self.policy = load_policy()
             self.token = request.headers.get("X-Auth-Token") or self.get_argument('token', False)
             authed, self.user = self._auth(request)
+            print authed
             if authed and self.user:
                 self.context = {'start': int(self.get_argument("start", 0)),
                                 'length': int(self.get_argument("length", 10000))}
@@ -69,10 +70,17 @@ class BaseAuth(tornado.web.RequestHandler):
         """
         backend = cache.Backend()
         user_info = backend.get(self.token)
+        print 1, user_info
         if not user_info:
-            Msg = self.get_usermsg_from_keystone(self.token)
-            backend.set(self.token, Msg)
-        return True, backend.get(self.token)
+            authed, Msg = self.get_usermsg_from_keystone(self.token)
+            print  authed, Msg
+            if authed:
+                backend.set(self.token, Msg)
+                return True, backend.get(self.token)
+            else:
+                return False, {}
+        else:
+            return True, user_info
 
     def get_usermsg_from_keystone(self, token):
         """
@@ -81,7 +89,7 @@ class BaseAuth(tornado.web.RequestHandler):
         try:
             headers = {'X-Auth-Token': token, 'Content-type':'application/json'}
             user_info = utils.get_http(url=options.auth_endpoint, headers=headers)
-            return user_info.json()['result']
+            return True, user_info.json()['result']
         except Exception,e:
             return False, {}
 
