@@ -252,3 +252,18 @@ def query_sort(table, query, sort_by='', sort_desc=True):
     if hasattr(table, sort_by):
         query = query.order_by(sort_desc(getattr(table, sort_by)))
     return query
+
+def query_common_search(context, table, query):
+    query_key = context.get('query_key', '')
+    query_type = context.get('query_type', '')
+    query_value = context.get('query_value', '')
+    _type = {"like": "=", "equal": "="}
+    table_property = getattr(table, query_key, None)
+    if not table_property: return query
+    if query_key and _type.get(query_type, '') and query_value:
+        if query_type == "like":
+            query = query.filter(table_property.like(query_value))
+        elif query_type == "equal":
+            filter_dict = {query_key: query_value}
+            query = query.filter_by(**filter_dict)
+    return query
