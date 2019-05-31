@@ -42,8 +42,7 @@ class BaseAuth(tornado.web.RequestHandler):
             authed, self.user = self._auth(request)
             print authed
             if authed and self.user:
-                self.context = {'start': int(self.get_argument("start", 0)),
-                                'length': int(self.get_argument("length", 10000))}
+                self.context = { k: self.get_argument(k) for k in self.request.arguments }
                 self.context['user'] = self.user
                 LOG.debug("auth token:%s by %s" % (self.token, self.context))
             else:
