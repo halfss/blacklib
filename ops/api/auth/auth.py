@@ -40,9 +40,9 @@ class BaseAuth(tornado.web.RequestHandler):
             self.policy = load_policy()
             self.token = request.headers.get("X-Auth-Token") or self.get_argument('token', False)
             authed, self.user = self._auth(request)
-            print authed
             if authed and self.user:
-                self.context = { k: self.get_argument(k) for k in self.request.arguments }
+                self.context = {"start": 0, "length": 1000}
+                self.context.update({ k: self.get_argument(k) for k in self.request.arguments })
                 self.context['user'] = self.user
                 LOG.debug("auth token:%s by %s" % (self.token, self.context))
             else:

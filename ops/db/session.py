@@ -109,8 +109,7 @@ def query_result_json(context, query_result, field={}, name='', ext_dict={}):
             result = [q for q in query_result[context['start']:(context['length']+context['start'])] if q]
         is_list = True
     elif getattr(query_result, '__dict__', ''):
-        _result = [dict(query_result)]
-        result = {k: _result[k] for k in list(_result.keys())[context['start']:(context['length']+context['start'])]}
+        result = [dict(query_result)]
     elif isinstance(query_result, dict) and ('count' not in query_result.keys()):
         count = len(query_result.keys())
         result = {k: query_result[k] for k in list(query_result.keys())[context['start']:(context['length']+context['start'])]}
