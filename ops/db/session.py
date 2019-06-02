@@ -245,6 +245,8 @@ def register_models(tables):
 
 
 def query_sort(table, query, sort_by='', sort_desc=True):
+    sort_by = sort_by or 'created_at'
+    sort_desc = sort_desc or True
     if not isinstance(sort_desc, bool):
         if sort_desc=='True':
             sort_desc = True
