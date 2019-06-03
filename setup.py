@@ -9,7 +9,6 @@ setup(
     author="halfss",
     install_requires=[
         "SQLAlchemy",
-        "psycopg2",
         "tornado==4.5.1",
         "eventlet",
         "redis",
