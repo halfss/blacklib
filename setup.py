@@ -9,7 +9,7 @@ setup(
     author="halfss",
     install_requires=[
         "SQLAlchemy",
-        "tornado==4.5.1",
+        "tornado==6.3.2",
         "eventlet",
         "redis",
         "requests",
